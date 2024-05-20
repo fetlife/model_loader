@@ -1,0 +1,12 @@
+[package]
+name = "model_loader"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+flate2 = "1"
+object_store = { version = ">= 0.10.0, < 1", features = ["gcp"] }
+tar = ">= 0.4, < 1"
+tracing = "0.1"
+url = "2"
