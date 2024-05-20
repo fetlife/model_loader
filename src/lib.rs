@@ -141,7 +141,7 @@ macro_rules! model_manifest {
                 $($file_name),+
             }
 
-            #[serde_inline_default::serde_inline_default]
+            #[serde_inline_default]
             #[derive(Clone, Debug, Default, serde::Deserialize)]
             pub struct $name {
                 pub path: String,
@@ -180,4 +180,15 @@ macro_rules! model_manifest {
 
         }
     };
+}
+
+
+pub mod prelude {
+    pub use crate::ModelLoader;
+    pub use crate::ModelManifest;
+    pub use crate::model_manifest;
+
+    pub use paste;
+    pub use serde_inline_default::serde_inline_default;
+    pub use serde;
 }
