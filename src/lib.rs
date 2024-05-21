@@ -3,7 +3,7 @@ use std::io::{Cursor, Read};
 use anyhow::{bail, Context, Result};
 use flate2::read::GzDecoder;
 use tar::Archive;
-use tracing::{span, Level};
+use tracing::{span, trace, Level};
 
 pub async fn load_model_files<T: ModelLoader>(
     mut loader: T,
@@ -37,16 +37,20 @@ pub async fn load_model_bundle<T: ModelLoader>(
     for entry in archive.entries()? {
         let mut entry = entry?;
         let path = entry.path()?;
-        tracing::trace!("found file in the bundle: {:?}", path);
+        trace!("found file in the bundle: {:?}", path);
         let path_name = path.to_string_lossy().to_string();
         let model_file = manifest.model_file(&path_name);
         match model_file {
             Ok(model_file) => {
+                trace!("loading file: {:?}", path);
                 let mut buf = Vec::new();
                 entry.read_to_end(&mut buf).context("reading file")?;
                 loader.load(model_file, buf)?;
             }
-            Err(_) => { /* ignore unknown files */ }
+            Err(_) => {
+                /* ignore unknown files */
+                trace!("ignoring file: {:?}", path)
+            }
         }
     }
     loader.finish().context("finishing model loading")
@@ -142,7 +146,7 @@ macro_rules! model_manifest {
             }
 
             #[serde_inline_default]
-            #[derive(Clone, Debug, Default, serde::Deserialize)]
+            #[derive(Clone, Debug, serde::Deserialize)]
             pub struct $name {
                 pub path: String,
                 #[serde(default)]
@@ -151,6 +155,16 @@ macro_rules! model_manifest {
                     #[serde_inline_default($default_file_name.to_owned())]
                     pub [<$file_name:snake>]: String
                 ),+
+            }
+
+            impl std::default::Default for $name {
+                fn default() -> Self {
+                    Self {
+                        path: "".to_owned(),
+                        bundle: false,
+                        $([<$file_name:snake>]: $default_file_name.to_owned()),+
+                    }
+                }
             }
 
             impl $crate::ModelManifest for $name {
@@ -169,9 +183,10 @@ macro_rules! model_manifest {
                 }
 
                 fn model_file(&self, s: &str) -> Result<Self::ModelFile, anyhow::Error> {
+                    tracing::trace!("checking file: {}, for self: {:?}", s, self);
                     $(
                         if self.[<$file_name:snake>] == s {
-                         return Ok(Self::ModelFile::$file_name)
+                            return Ok(Self::ModelFile::$file_name)
                         }
                     )+
                     return Err(anyhow::anyhow!("unknown file: {}", s))
