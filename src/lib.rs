@@ -2,6 +2,7 @@ use std::io::{Cursor, Read};
 
 use anyhow::{bail, Context, Result};
 use flate2::read::GzDecoder;
+use object_store::ObjectStoreExt;
 use tar::Archive;
 use tracing::{span, trace, Level};
 
@@ -207,4 +208,21 @@ pub mod prelude {
     pub use paste;
     pub use serde_inline_default::serde_inline_default;
     pub use serde;
+}
+
+#[cfg(all(test, feature = "http"))]
+mod tests {
+    #[test]
+    fn supports_generic_http_and_https_model_urls() {
+        for url in [
+            "http://example.com/model.tar.gz",
+            "https://example.com/model.tar.gz",
+        ] {
+            let url = url::Url::parse(url).unwrap();
+            assert!(
+                object_store::parse_url(&url).is_ok(),
+                "model URL should be supported: {url}"
+            );
+        }
+    }
 }
