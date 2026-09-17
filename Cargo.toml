@@ -3,10 +3,15 @@ name = "model_loader"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["http"]
+# Support loading models from generic HTTP(S) URLs.
+http = ["object_store/http"]
+
 [dependencies]
 anyhow = "1"
 flate2 = "1"
-object_store = { version = ">= 0.10.0, < 0.11.0", features = ["gcp"] }
+object_store = { version = ">= 0.14.0, < 0.15.0", features = ["gcp"] }
 paste = "1"
 serde = "1"
 serde-inline-default = "0.2"
