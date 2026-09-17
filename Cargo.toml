@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 flate2 = "1"
-object_store = { version = ">= 0.10.0, < 1", features = ["gcp"] }
+object_store = { version = ">= 0.10.0, < 0.11.0", features = ["gcp"] }
 paste = "1"
 serde = "1"
 serde-inline-default = "0.2"

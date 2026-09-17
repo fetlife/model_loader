@@ -45,6 +45,7 @@ pub async fn load_model_bundle<T: ModelLoader>(
                 trace!("loading file: {:?}", path);
                 let mut buf = Vec::new();
                 entry.read_to_end(&mut buf).context("reading file")?;
+                trace!("read file: {:?} to buffer. Buf size: {} bytes", path_name, buf.len());
                 loader.load(model_file, buf)?;
             }
             Err(_) => {
